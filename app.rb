@@ -18,6 +18,20 @@ helpers do
   def h(text) = Rack::Utils.escape_html(text.to_s)
   def entry_path(e) = "/entries/#{e.id}"
   def column_path(section, column) = "/columns/#{Rack::Utils.escape_path(section)}/#{column}"
+
+  # For a "see X" entry, the entries it points to, each in a box under it.
+  # A target that is itself a "see" entry is followed in turn, up to three
+  # steps.
+  def see_also_html(entry, depth = 1, seen = [entry.id])
+    return '' if depth > 3
+
+    entry.see_also.to_a.reject { |id, _| seen.include?(id) }.map do |id, nearest|
+      target = DICT.entry(id)
+      note = nearest ? %( <span class="muted">· nearest match: the headword is spelled differently</span>) : ''
+      %(<div class="see-also"><div class="see-also-head">↳ <a class="see-also-label" href="#{entry_path(target)}">#{h target.label}</a>#{note}</div>) +
+        %(<div class="see-also-body">#{target.html}#{see_also_html(target, depth + 1, seen + [id])}</div></div>)
+    end.join
+  end
 end
 
 get '/' do
