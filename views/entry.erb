@@ -1,0 +1,35 @@
+<% @page_title = @entry.label %>
+<div class="row">
+  <div class="span8"><h1><%= h @entry.label %></h1></div>
+  <div class="span4 entry-nav">
+    <div class="btn-group pull-right">
+      <% if @prev %><a class="btn" href="<%= entry_path(@prev) %>" title="<%= h @prev.label %>">&larr; Prev</a><% end %>
+      <% if @next %><a class="btn" href="<%= entry_path(@next) %>" title="<%= h @next.label %>">Next &rarr;</a><% end %>
+    </div>
+  </div>
+</div>
+
+<div class="well entry-body"><%= @entry.html %></div>
+
+<% if @entry.column %>
+  <p class="muted">
+    Printed edition: <a href="<%= column_path(@entry.section, @entry.column) %>?line=<%= @entry.line %>#c<%= @entry.column %>l<%= @entry.line %>"><%= h @entry.section %>, column <%= @entry.column %>, line <%= @entry.line %></a>
+  </p>
+<% end %>
+
+<div class="row">
+  <dl class="span4">
+    <dt>Part of speech</dt>
+    <% @entry.parts_of_speech.each do |pos| %><dd><%= h pos %></dd><% end %>
+  </dl>
+  <dl class="span4">
+    <dt>Definitions</dt>
+    <% @entry.definitions.each do |d| %><dd><%= h d %></dd><% end %>
+  </dl>
+  <dl class="span4">
+    <dt>Bibliographic references</dt>
+    <% @entry.bibls.map(&:title).uniq.each do |t| %>
+      <dd><a href="/bibliography/<%= Rack::Utils.escape_path(t) %>"><%= h t %></a></dd>
+    <% end %>
+  </dl>
+</div>

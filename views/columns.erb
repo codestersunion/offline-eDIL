@@ -1,0 +1,16 @@
+<% @page_title = 'Browse' %>
+<h1>Browse by column</h1>
+<p class="section-links">
+  <% DICT.sections.each_key do |s| %><a class="btn btn-small" href="#section-<%= h s %>"><%= h s %></a> <% end %>
+</p>
+<% DICT.sections.each_key do |section| %>
+  <h2 id="section-<%= h section %>"><%= h section %></h2>
+  <ul class="column-index">
+    <% DICT.columns(section).each_slice(2) do |left, right| %>
+      <li>
+        <a href="<%= column_path(section, left) %>"><%= right ? "#{left}–#{right}" : left %></a>
+        <% if (e = @first_entry[[section, left]]) %><span class="muted"><%= h e.label %></span><% end %>
+      </li>
+    <% end %>
+  </ul>
+<% end %>

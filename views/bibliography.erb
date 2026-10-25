@@ -1,0 +1,7 @@
+<% @page_title = 'Bibliography' %>
+<h1>Bibliography <small><%= @sources.size %> sources cited</small></h1>
+<ul class="bibliography">
+  <% @sources.each do |title, entries| %>
+    <li><a href="/bibliography/<%= Rack::Utils.escape_path(title) %>"><%= h title %></a> <span class="muted">(<%= entries.size %>)</span></li>
+  <% end %>
+</ul>
