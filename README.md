@@ -8,15 +8,11 @@ software beyond a web browser.
 
 ### 1. Get a copy
 
-This repository is private, so first sign in to GitHub with an account that
-has been given access.
-
 **Easiest: download a ZIP (no tools needed)**
 
-1. Open https://github.com/codestersunion/offline-eDIL.
-2. Click the green **Code** button, then **Download ZIP**. The file is about
-   40 MB.
-3. Unzip it:
+1. Click the green **Code** button near the top of this page, then
+   **Download ZIP**. The file is about 40 MB.
+2. Unzip it:
    - **Mac:** double-click the downloaded file.
    - **Windows:** right-click it and choose **Extract All…**, then **Extract**.
 
