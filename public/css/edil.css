@@ -1,0 +1,55 @@
+/* Ported from the original app/assets/stylesheets (layout.css.sass and
+   bootstrap_and_overrides.css.less). */
+
+@font-face { font-family: header; src: url('../fonts/AbsaraTF-ThinSC.otf'); }
+
+body { background-color: #EEEEEE; padding-top: 60px; }
+
+.navbar-inner {
+  background-color: #336147;
+  background-image: linear-gradient(to bottom, #1f3d2c, #336147);
+}
+.navbar .brand { font-family: header; font-size: 1.3em; color: #FFE58A; }
+.navbar .nav > li > a { color: #FFE58A; }
+.navbar .nav > li > a:hover { color: #fff; }
+
+#site { background-color: #FFFFFF; padding: 0 20px 20px; border-radius: 4px; }
+#site h1 { padding: 0.8em 0 0.5em; font-family: header; }
+
+footer { padding: 1em; text-align: right; color: #888; }
+
+/* Browse: two printed columns side by side */
+.column-nav { padding-top: 1.6em; }
+.column-nav .btn-group { float: right; }
+.page { background-color: #F3F3F3; border-radius: 0.5em; box-shadow: inset 0 0 0.5em #CCC; padding: 0.5em 0; }
+.page .column ol { margin-left: 3em; }
+.page .column li { color: #AAA; padding: 0.3em 0; border-bottom: 1px solid #EEE; font-size: 12px; }
+.page .column li:nth-child(2n) { background: #F7F7F7; }
+.page .column li p { color: #000; margin-bottom: 0; font-size: 13px; }
+.page .column li.highlight, .page .column li:target { background: #FFF3B0; }
+.column-index, .headword-index, .bibliography { columns: 4 12em; list-style: none; margin-left: 0; }
+.column-index li, .headword-index li, .bibliography li { break-inside: avoid; }
+
+/* Entry */
+.entry-nav { padding-top: 1.6em; }
+.entry-body { font-size: 14px; line-height: 1.7; }
+.entry-body .p { display: block; margin-bottom: 0.6em; }
+.entry-body .sense { display: block; margin-left: 1em; }
+
+/* Dictionary markup */
+.def, .trans { color: green; }
+.def { font-weight: bold; }
+.trans { font-style: italic; }
+.xref, a.xref { color: teal; }
+.lbl { color: black; font-style: italic; }
+.q, .quote { color: #697; font-style: italic; font-family: serif; }
+.bibl { font-weight: bold; color: #069; }
+.biblScope, .orphanScope { font-weight: normal; }
+.hi { font-style: italic; }
+.frn { font-style: italic; color: #864; }
+.oVar, .oRef { font-weight: bold; }
+.gram, .gen, .case, .number, .per, .tns, .mood, .voice, .itype { color: #555; }
+.orth { font-family: header; font-weight: bold; font-size: 1.4em; color: black; }
+.page .orth { font-size: 1.2em; }
+a.ref { color: purple; text-decoration: none; }
+a.ref:hover { color: white; background-color: purple; }

@@ -1,0 +1,87 @@
+#!/usr/bin/env ruby
+# Builds a version of the site that runs entirely in the browser, with no
+# server of any kind: open static/index.html straight from disk.
+#
+# The dictionary ships once, as gzipped JSON inside data.js (a page opened
+# from disk can load scripts but not fetch data files). browser/app.js
+# decompresses it on load and draws every page on demand.
+Encoding.default_external = Encoding::UTF_8
+
+require 'base64'
+require 'erb'
+require 'fileutils'
+require 'json'
+require 'zlib'
+require_relative '../lib/dictionary'
+
+ROOT = File.expand_path('..', __dir__)
+DATA_DIR = ENV.fetch('EDIL_DATA', File.join(ROOT, 'data'))
+OUT = File.join(ROOT, 'static')
+
+puts 'Loading dictionary (about a minute if the cache needs rebuilding)...'
+dict = Dictionary.load(DATA_DIR)
+by_section = dict.entries.group_by(&:section)
+
+# Each section's text, split into alternating [gap, entry, gap, entry, ..., gap]
+# so the browser can render one entry without searching, and rejoin the parts
+# for the printed-column view. Comments are editorial notes and are dropped.
+sections = Dictionary.files(DATA_DIR).map do |file|
+  name = File.basename(file, '.xml')
+  text = Dictionary.clean(File.read(file, encoding: 'UTF-8')).gsub(/<!--.*?-->/m, '')
+  parts = text.split(%r{(<entry\b[^>]*>.*?</entry>)}m, -1)
+  found = (parts.size - 1) / 2
+  expected = by_section.fetch(name, []).size
+  abort "#{name}: split #{found} entries, loader has #{expected}" unless found == expected
+
+  { name: name, cols: dict.columns(name), parts: parts }
+end
+
+section_index = sections.each_with_index.to_h { |s, i| [s[:name], i] }
+pos_names = dict.entries.flat_map(&:parts_of_speech).uniq.sort
+pos_index = pos_names.each_with_index.to_h
+titles = dict.sources.keys.sort_by { |t| [Dictionary.normalize(t), t] }
+title_index = titles.each_with_index.to_h
+es = dict.entries
+
+payload = {
+  sections: sections,
+  posNames: pos_names,
+  titles: titles,
+  # Column-oriented: entries.label[i] is the label of entry i + 1.
+  entries: {
+    section: es.map { |e| section_index[e.section] },
+    label: es.map(&:label),
+    key: es.map(&:key),
+    xmlId: es.map(&:xml_id),
+    col: es.map(&:column),
+    line: es.map(&:line),
+    defs: es.map(&:definitions),
+    pos: es.map { |e| e.parts_of_speech.map { |p| pos_index[p] } },
+    bibls: es.map { |e| e.bibls.map(&:title).uniq.map { |t| title_index[t] } }
+  }
+}
+
+FileUtils.mkdir_p(OUT)
+json = JSON.generate(payload)
+gz = Zlib.gzip(json, level: 9)
+File.write(File.join(OUT, 'data.js'), "window.EDIL_DATA = \"#{Base64.strict_encode64(gz)}\";\n")
+
+about = File.readlines(File.join(ROOT, 'views', 'about.erb')).drop(1).join
+template = File.read(File.join(ROOT, 'browser', 'index.html.erb'))
+File.write(File.join(OUT, 'index.html'), ERB.new(template).result(binding))
+FileUtils.cp(File.join(ROOT, 'browser', 'app.js'), OUT)
+
+public_dir = File.join(ROOT, 'public')
+{ 'css' => %w[bootstrap.css bootstrap-responsive.css edil.css],
+  'js' => %w[jquery.min.js bootstrap.js],
+  'img' => %w[glyphicons-halflings.png glyphicons-halflings-white.png],
+  'fonts' => %w[AbsaraTF-ThinSC.otf] }.each do |dir, names|
+  FileUtils.mkdir_p(File.join(OUT, dir))
+  names.each { |n| FileUtils.cp(File.join(public_dir, dir, n), File.join(OUT, dir, n)) }
+end
+FileUtils.cp(File.join(public_dir, 'favicon.ico'), OUT)
+
+mb = ->(bytes) { format('%.1f MB', bytes / 1_048_576.0) }
+total = Dir[File.join(OUT, '**', '*')].select { |f| File.file?(f) }.sum { |f| File.size(f) }
+puts "Packed #{es.size} entries: JSON #{mb[json.bytesize]}, gzipped #{mb[gz.bytesize]}"
+puts "Wrote #{OUT} (#{mb[total]} in total). Open static/index.html in a browser."

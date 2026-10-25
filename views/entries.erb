@@ -1,0 +1,12 @@
+<% @page_title = "Headwords: #{@section}" %>
+<h1>Headwords <small><%= @entries.size %> entries in <%= h @section %></small></h1>
+<p class="section-links">
+  <% DICT.sections.each_key do |s| %>
+    <a class="btn btn-small<%= ' active' if s == @section %>" href="/entries?section=<%= Rack::Utils.escape(s) %>"><%= h s %></a>
+  <% end %>
+</p>
+<ul class="headword-index">
+  <% @entries.each do |e| %>
+    <li><a href="<%= entry_path(e) %>"><%= h e.label %></a></li>
+  <% end %>
+</ul>

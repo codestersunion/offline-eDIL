@@ -1,0 +1,26 @@
+<% @page_title = "#{@section}: " + (@right ? "columns #{@left} & #{@right}" : "column #{@left}") %>
+<div class="row">
+  <div class="span8">
+    <h1><%= h @section %> <small><%= @right ? "columns #{@left} & #{@right}" : "column #{@left}" %></small></h1>
+  </div>
+  <div class="span4 column-nav">
+    <div class="progress progress-striped"><div class="bar" style="width: <%= @progress %>%"></div></div>
+    <div class="btn-group">
+      <% if @prev %><a class="btn" href="<%= column_path(*@prev) %>">&larr; Previous</a><% end %>
+      <% if @next %><a class="btn" href="<%= column_path(*@next) %>">Next &rarr;</a><% end %>
+    </div>
+  </div>
+</div>
+
+<div class="row page">
+  <% [@left, @right].compact.each do |col| %>
+    <div class="span6 column">
+      <ol>
+        <% DICT.lines(@section, col).each do |line| %>
+          <% anchor = "c#{col}l#{line.number}" %>
+          <li id="<%= anchor %>" value="<%= line.number %>"<%= ' class="highlight"' if anchor == @highlight %>><p><%= line.html %></p></li>
+        <% end %>
+      </ol>
+    </div>
+  <% end %>
+</div>
