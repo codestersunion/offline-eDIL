@@ -3,15 +3,21 @@ require 'fileutils'
 require 'nokogiri'
 require 'zlib'
 require_relative 'markup'
+require_relative 'source_markup'
+require_relative 'entry_layout'
+require_relative 'cross_references'
 
 # Loads the eDIL XML files into memory: entries (with their parts of speech,
-# definitions and bibliographic references) and the printed column/line text.
+# definitions, bibliographic references, laid-out HTML and, for "see X"
+# entries, the entries they point to) and the printed column/line text.
 #
 # Each XML file is a "section" (A, B, ..., D1, D2, ...). Column numbers restart
 # in each section, so the printed text is keyed by [section, column].
+# Source abbreviations get their full titles from sources.json next to the
+# XML files, when present.
 #
 # Parsing every file takes a while, so the result is cached with Marshal and
-# reused until the XML files or this code change.
+# reused until the XML files, sources.json or this code change.
 class Dictionary
   # Character entities the source uses without declaring them.
   ENTITIES = {
@@ -37,9 +43,14 @@ class Dictionary
     "#{m[:doubt] ? '? ' : ''}#{m[:word]}#{num}"
   end
 
+  # `code` is the editors' word-type code ("n", "v", "x" for a cross-
+  # reference ...). `see_also` lists, for a cross-reference, the entries it
+  # points to as [id, nearest] (nearest: matched a headword spelled one
+  # letter differently).
   Entry = Struct.new(:id, :xml_id, :orth, :label, :key, :html, :parts_of_speech,
                      :definitions, :definitions_key, :bibls, :section, :column, :line,
-                     keyword_init: true)
+                     :code, :see_also, keyword_init: true)
+  XrefEntry = Struct.new(:id, :orth, :xml_id, :xml)
   Bibl = Struct.new(:title, :scope)
   Line = Markup::Line
 
@@ -79,7 +90,8 @@ class Dictionary
   def self.load(dir, cache_dir: File.join(dir, '.cache'))
     files = self.files(dir)
     code = Dir[File.join(__dir__, '*.rb')].sort.map { |f| File.read(f) }.join
-    stamp = files.map { |f| [File.basename(f), File.size(f), File.mtime(f).to_i] }
+    sources = File.join(dir, 'sources.json')
+    stamp = (files + [sources]).select { |f| File.exist?(f) }.map { |f| [File.basename(f), File.size(f), File.mtime(f).to_i] }
     cache = File.join(cache_dir, "dictionary-#{Digest::SHA256.hexdigest(Marshal.dump([stamp, code]))[0, 16]}.bin")
 
     return Marshal.load(Zlib.inflate(File.binread(cache))) if File.exist?(cache)
@@ -104,14 +116,25 @@ class Dictionary
       doc = Nokogiri::XML(self.class.clean(File.read(file, encoding: 'UTF-8'))) { |c| c.recover.nonet }
       doc.css('entry').each do |node|
         @entries << build_entry(node, @entries.size + 1, section)
-        entry_xml << node.children.map { |c| c.to_xml(encoding: 'UTF-8') }.join
+        entry_xml << node.children.map { |c| EntryLayout.to_xml(c) }.join
       end
     end
 
     targets = {}
     @entries.each { |e| targets[e.xml_id] ||= e.id if e.xml_id }
     markup = Markup.new(targets)
-    @entries.each_with_index { |e, i| e.html = markup.to_html(entry_xml[i]) }
+    sources = SourceMarkup.load_sources(File.join(File.dirname(files.first), 'sources.json'))
+    layout_markup = SourceMarkup.new(targets, sources)
+    @entries.each_with_index do |e, i|
+      e.html = EntryLayout.new("<entry>#{entry_xml[i]}</entry>", markup: layout_markup).html
+    end
+
+    xrefs = CrossReferences.new(@entries.map { |e| XrefEntry.new(e.id, e.orth, e.xml_id, entry_xml[e.id - 1]) })
+    @entries.each do |e|
+      next unless e.code == 'x'
+
+      e.see_also = xrefs.matches_of(XrefEntry.new(e.id, e.orth, e.xml_id, entry_xml[e.id - 1])).map { |t, nearest| [t.id, nearest] }
+    end
 
     # Pass 2: the printed text, split into columns and lines.
     @sections = {}
@@ -181,7 +204,9 @@ class Dictionary
                  .reject { |b| b.title.empty? },
       section: section,
       column: br && br['column'].to_i,
-      line: br && br['line'].to_i
+      line: br && br['line'].to_i,
+      code: node.at_css('pos[value]')&.[]('value')&.strip,
+      see_also: []
     )
   end
 end

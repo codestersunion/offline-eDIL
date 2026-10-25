@@ -37,6 +37,10 @@ dictionary…" you can browse and search.
   or press Enter to see all matches.
 - **Headwords** lists every entry by letter, and **Browse** shows the pages of
   the printed dictionary column by column.
+- In an entry, each form and each example sentence is on its own line. Point
+  at an abbreviated source (dotted underline, like **Wb.**) to see its full
+  title. An entry that just says "see …" shows the entry it points to
+  underneath.
 - To get back to it quickly, bookmark the page in your browser or make a
   shortcut to `index.html`.
 
@@ -64,14 +68,45 @@ parts), about 42,700 entries. H is nearly empty in that source (31 entries).
 Pages:
 
 - **Browse** (`/columns/:section/:n`): the printed edition, two columns per page, with line numbers
-- **Entries** (`/entries/:id`): headword, formatted body, part of speech, definitions, sources
+- **Entries** (`/entries/:id`): headword, the entry laid out for reading (see
+  below), part of speech, definitions, sources
 - **Search** (`/search?q=`): headwords (accent-insensitive, prefix) or definitions; typeahead in the navbar
 - **Bibliography** (`/bibliography`): every cited source, linking to the entries that cite it
 - **About** and **Contact**
 
-There's no database. The first start parses all the XML (about 50 seconds) and
-caches the result in `data/.cache/`. Later starts take about 2 seconds. The
-cache rebuilds automatically when the XML or `lib/` changes.
+There's no database. The first start parses and lays out all the XML (about
+90 seconds) and caches the result in `data/.cache/`. Later starts take about
+2 seconds. The cache rebuilds automatically when the XML, `data/sources.json`
+or `lib/` changes.
+
+### How entries are laid out
+
+- **One line per form and per example** (`lib/entry_layout.rb`). The grammar
+  block becomes a table with a row per run of labels ("ns.", "fut. 1 s.") and
+  per form. Each sense lists its example sentences (Irish quotation,
+  translation, references) one per line. Nothing is reworded or reordered:
+  the entry only gains line breaks.
+- **Source titles on hover** (`lib/source_markup.rb`, styles in
+  `public/css/entry.css`). Abbreviations like "Wb." show the full reference,
+  from `data/sources.json`. That file was built from eDIL's own bibliography
+  pages, as saved by the Internet Archive, by `prototypes/build_sources.rb`.
+  It covers 98.8% of the dictionary's references.
+- **"See" entries** (`lib/cross_references.rb`). An entry like "acarda see
+  accarda" shows the entries it points to underneath, following chains up to
+  three steps. 96.8% of the 7,233 cross-reference entries resolve. Where the
+  source spells the target differently by one letter, the box says it's the
+  nearest match.
+
+The browser-only version has a JavaScript copy of the layout rules in
+`browser/app.js`. `test/layout_parity.rb` renders a sample of entries both
+ways and checks the HTML is identical (it needs Google Chrome):
+
+```sh
+bin/build-static && ruby test/layout_parity.rb 4000
+```
+
+`prototypes/` holds the scripts used to design the layout: sample pages,
+and a survey of how the rules handle every entry (`prototypes/survey.rb`).
 
 ### Run the server version
 
@@ -101,8 +136,8 @@ running the build.
   from disk may load scripts but not fetch data files, which is why it's a script.
 - `app.js` (source: `browser/app.js`) decompresses it on load, which takes
   about half a second. It then draws each page on demand, with the same
-  markup rendering, search and page layout as the server version. Pages
-  are addressed by the URL hash, e.g. `index.html#/entries/35237`.
+  entry layout, search and pages as the server version. Pages are addressed
+  by the URL hash, e.g. `index.html#/entries/35237`.
 - It needs a browser from 2023 or later (Chrome, Edge, Firefox or Safari), for
   `DecompressionStream`. The page uses about 350 MB of memory once loaded.
 
