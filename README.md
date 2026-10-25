@@ -1,4 +1,63 @@
-# eDIL (local)
+# Dictionary of the Irish Language, offline
+
+The whole electronic Dictionary of the Irish Language (eDIL) as a website that
+runs on your own computer. You don't need an internet connection or any
+software beyond a web browser.
+
+## How to use it
+
+### 1. Get a copy
+
+This repository is private, so first sign in to GitHub with an account that
+has been given access.
+
+**Easiest: download a ZIP (no tools needed)**
+
+1. Open https://github.com/codestersunion/offline-eDIL.
+2. Click the green **Code** button, then **Download ZIP**. The file is about
+   40 MB.
+3. Unzip it:
+   - **Mac:** double-click the downloaded file.
+   - **Windows:** right-click it and choose **Extract All…**, then **Extract**.
+
+   You get a folder called `offline-eDIL-main`.
+
+**Or, if you use git:**
+
+```sh
+git clone https://github.com/codestersunion/offline-eDIL.git
+```
+
+This makes a folder called `offline-eDIL`.
+
+### 2. Open the dictionary
+
+In the folder, open the **`static`** folder and double-click **`index.html`**.
+It opens in your web browser. After a second or two of "Loading the
+dictionary…" you can browse and search.
+
+- Use the **Search** box at the top right. Accents and capitals don't matter:
+  `run` finds *rún*. As you type it suggests headwords. Click one to open it,
+  or press Enter to see all matches.
+- **Headwords** lists every entry by letter, and **Browse** shows the pages of
+  the printed dictionary column by column.
+- To get back to it quickly, bookmark the page in your browser or make a
+  shortcut to `index.html`.
+
+### If something goes wrong
+
+- **The page stays on "Loading the dictionary…" or shows an error:** update your
+  browser. It needs a 2023 or newer version of Chrome, Edge, Firefox or Safari.
+- **The page looks broken or empty:** make sure you unzipped the download
+  first. Opening `index.html` from inside the ZIP without extracting it won't
+  work.
+- **You moved `index.html` on its own:** keep the whole `static` folder
+  together. You can move or copy the folder anywhere, for example to a USB
+  stick, as long as its contents stay together.
+
+---
+
+## About this project
 
 A small Sinatra rewrite of the 2012 eDIL prototype
 ([e-dil/eDIL](https://github.com/e-dil/eDIL)), which needed Rails 3.2 /
@@ -18,7 +77,7 @@ There's no database. The first start parses all the XML (about 50 seconds) and
 caches the result in `data/.cache/`. Later starts take about 2 seconds. The
 cache rebuilds automatically when the XML or `lib/` changes.
 
-## Run
+### Run the server version
 
 Requires Ruby 3.1+ (on macOS: `brew install ruby`).
 
@@ -29,7 +88,7 @@ bin/server
 Then open http://localhost:4567. Set `PORT` to change the port, and `EDIL_DATA`
 to load XML files from another directory.
 
-## Browser-only version (no server)
+### Build the browser-only version (no server)
 
 ```sh
 bin/build-static
