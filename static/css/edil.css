@@ -32,9 +32,7 @@ footer { padding: 1em; text-align: right; color: #888; }
 
 /* Entry */
 .entry-nav { padding-top: 1.6em; }
-.entry-body { font-size: 14px; line-height: 1.7; }
-.entry-body .p { display: block; margin-bottom: 0.6em; }
-.entry-body .sense { display: block; margin-left: 1em; }
+.entry-body { font-size: 15px; line-height: 1.6; margin-bottom: 18px; }
 
 /* Dictionary markup */
 .def, .trans { color: green; }

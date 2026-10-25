@@ -1,0 +1,50 @@
+/* Entry layout ("layout A", lib/entry_layout.rb and browser/app.js), on top
+   of edil.css. Everything is scoped to .layout-a. */
+
+.layout-a .orth { font-family: inherit; }
+.layout-a .dot { color: #bbb; }
+.layout-a .q, .layout-a .quote { color: #3d6b4c; }
+.layout-a .bibl { font-weight: normal; color: #2f6f9a; font-size: 0.93em; }
+.layout-a .bibl .title { font-weight: 600; }
+.layout-a .bibl .hint { color: #9fb3c3; font-weight: 600; }
+.layout-a .bibl sup { font-size: 0.7em; }
+/* Source abbreviations: the full reference appears on hover, focus or tap.
+   It is placed under the line that holds the abbreviation, from the line's
+   left edge, so it never runs off the side of the page. */
+.layout-a li.cite, .layout-a .intro, .layout-a .note, .layout-a .gram-head,
+.layout-a .gram-form, .layout-a .gram-note { position: relative; }
+.layout-a .source { cursor: help; text-decoration: underline dotted rgba(47, 111, 154, 0.45); text-underline-offset: 3px; outline: none; }
+.layout-a .source:hover::after, .layout-a .source:focus::after {
+  content: attr(data-source);
+  position: absolute; left: 0; top: calc(100% + 2px); z-index: 20;
+  width: max-content; max-width: min(30em, 100%);
+  padding: 6px 10px; border-radius: 5px;
+  background: #2b3a33; color: #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  font: normal 13px/1.45 "Helvetica Neue", Helvetica, Arial, sans-serif;
+  text-decoration: none; white-space: normal; text-align: left; pointer-events: none;
+}
+
+.layout-a .gram-head { margin: 0 0 8px; color: #555; }
+.layout-a table.grammar { border-collapse: collapse; margin-bottom: 18px; }
+.layout-a table.grammar td { padding: 1px 12px 1px 0; vertical-align: baseline; }
+.layout-a .gram-label { color: #777; white-space: nowrap; }
+.layout-a .gram-label .case, .layout-a .gram-label .number { color: #777; }
+.layout-a .gram-form .oVar, .layout-a .gram-form .q { font-weight: bold; color: #222; font-style: normal; font-family: inherit; }
+.layout-a .gram-refs { margin-left: 0.6em; }
+.layout-a .gram-note { color: #666; font-style: italic; padding-top: 8px; }
+.layout-a .gram-prefix { color: #666; font-style: italic; font-weight: normal; }
+
+.layout-a .sense-block { margin: 22px 0; }
+.layout-a .intro { margin-bottom: 6px; }
+.layout-a .note { margin: 12px 0 4px 1.4em; color: #666; font-style: italic; }
+.layout-a ul.cites { list-style: none; margin: 0 0 0 1.4em; padding: 0; }
+.layout-a li.cite { padding: 3px 0 3px 0.9em; border-left: 3px solid #e2ebe5; margin: 1px 0; }
+
+/* The entry a "see" entry points to, shown underneath. */
+.see-also { margin: 14px 0 6px; border: 1px solid #dfe8e2; border-radius: 6px; background: #fafcfb; }
+.see-also-head { padding: 6px 14px; border-bottom: 1px solid #e6eee9; color: #555; }
+.see-also-label { font-weight: bold; font-size: 1.15em; color: #222; text-decoration: none; }
+a.see-also-label:hover { text-decoration: underline; }
+.see-also-body { padding: 4px 14px 8px; }
+.see-also .see-also { background: #fff; }
+

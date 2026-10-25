@@ -8,6 +8,8 @@
 # column/line units, marked in the source by <br column="x" line="y"/>.
 # Elements regularly span line breaks, so each line closes the elements still
 # open at its end and the next line reopens them.
+require 'cgi'
+
 class Markup
   TOKEN = /<!--.*?-->|<\?.*?\?>|<!DOCTYPE[^>]*>|<[^>]+>|[^<]+/m
   ATTR  = /([\w:.-]+)="([^"]*)"/
@@ -69,7 +71,9 @@ class Markup
       elsif tok.start_with?('<')
         self_closing = tok.end_with?('/>')
         name = tok[/\A<([\w:.-]+)/, 1] or next
-        attrs = tok.scan(ATTR).to_h
+        # Serializers write non-ASCII in attributes as character references
+        # (target="a&#xED;" for "aí"); decode them before matching.
+        attrs = tok.scan(ATTR).to_h.transform_values { |v| CGI.unescapeHTML(v) }
         if name == 'br' && attrs['column']
           yield :br, '', attrs
           next

@@ -9,7 +9,7 @@
   </div>
 </div>
 
-<div class="well entry-body"><%= @entry.html %></div>
+<div class="entry-body layout-a"><%= @entry.html %><%= see_also_html(@entry) %></div>
 
 <% if @entry.column %>
   <p class="muted">

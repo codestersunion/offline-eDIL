@@ -2,3 +2,5 @@ vendor/bundle
 .bundle
 data/.cache
 dist
+prototypes/*.html
+prototypes/survey.json

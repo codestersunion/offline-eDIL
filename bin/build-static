@@ -4,7 +4,9 @@
 #
 # The dictionary ships once, as gzipped JSON inside data.js (a page opened
 # from disk can load scripts but not fetch data files). browser/app.js
-# decompresses it on load and draws every page on demand.
+# decompresses it on load and draws every page on demand, laying out
+# entries with its JavaScript copy of lib/entry_layout.rb. Cross-reference
+# targets and source titles are worked out here and shipped with the data.
 Encoding.default_external = Encoding::UTF_8
 
 require 'base64'
@@ -47,6 +49,8 @@ payload = {
   sections: sections,
   posNames: pos_names,
   titles: titles,
+  # Full titles of source abbreviations, by lowercased key.
+  sources: SourceMarkup.new({}, SourceMarkup.load_sources(File.join(DATA_DIR, 'sources.json'))).descriptions,
   # Column-oriented: entries.label[i] is the label of entry i + 1.
   entries: {
     section: es.map { |e| section_index[e.section] },
@@ -57,7 +61,9 @@ payload = {
     line: es.map(&:line),
     defs: es.map(&:definitions),
     pos: es.map { |e| e.parts_of_speech.map { |p| pos_index[p] } },
-    bibls: es.map { |e| e.bibls.map(&:title).uniq.map { |t| title_index[t] } }
+    bibls: es.map { |e| e.bibls.map(&:title).uniq.map { |t| title_index[t] } },
+    # For "see X" entries: [target id, nearest (1/0), ...].
+    see: es.map { |e| e.see_also.flat_map { |id, nearest| [id, nearest ? 1 : 0] } }
   }
 }
 
@@ -72,7 +78,7 @@ File.write(File.join(OUT, 'index.html'), ERB.new(template).result(binding))
 FileUtils.cp(File.join(ROOT, 'browser', 'app.js'), OUT)
 
 public_dir = File.join(ROOT, 'public')
-{ 'css' => %w[bootstrap.css bootstrap-responsive.css edil.css],
+{ 'css' => %w[bootstrap.css bootstrap-responsive.css edil.css entry.css],
   'js' => %w[jquery.min.js bootstrap.js],
   'img' => %w[glyphicons-halflings.png glyphicons-halflings-white.png],
   'fonts' => %w[AbsaraTF-ThinSC.otf] }.each do |dir, names|
