@@ -1,5 +1,7 @@
 # Dictionary of the Irish Language, offline
 
+Since dil.ie has been down for quite a while now, I had Claude create an offline version of the DIL for reference. I used the dictionary files available at https://github.com/e-dil/dil to supply the text. Instructions below.
+
 The whole electronic Dictionary of the Irish Language (eDIL) as a website that
 runs on your own computer. You don't need an internet connection or any
 software beyond a web browser.
