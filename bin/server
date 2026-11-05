@@ -3,4 +3,5 @@
 cd "$(dirname "$0")/.." || exit 1
 [ -x /opt/homebrew/opt/ruby/bin/ruby ] && PATH="/opt/homebrew/opt/ruby/bin:$PATH"
 bundle check >/dev/null 2>&1 || bundle install || exit 1
+ruby bin/fetch-data || exit 1 # the dictionary text, if not downloaded yet
 exec bundle exec ruby app.rb

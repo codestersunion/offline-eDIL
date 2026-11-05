@@ -20,6 +20,9 @@ ROOT = File.expand_path('..', __dir__)
 DATA_DIR = ENV.fetch('EDIL_DATA', File.join(ROOT, 'data'))
 OUT = File.join(ROOT, 'static')
 
+# The dictionary text isn't in this repository; download it if needed.
+system(RbConfig.ruby, File.join(__dir__, 'fetch-data')) or abort 'Could not download the dictionary data.'
+
 puts 'Loading dictionary (about a minute if the cache needs rebuilding)...'
 dict = Dictionary.load(DATA_DIR)
 by_section = dict.entries.group_by(&:section)

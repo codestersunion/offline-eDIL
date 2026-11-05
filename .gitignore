@@ -1,6 +1,15 @@
 vendor/bundle
-.bundle
+# .bundle/config is shared: it installs gems into vendor/bundle, so
+# bundle install never needs administrator rights.
+/.bundle/*
+!/.bundle/config
 data/.cache
 dist
 prototypes/*.html
 prototypes/survey.json
+# Not in the repository: the dictionary text (downloaded by bin/fetch-data)
+# and anything built from it.
+data/*.xml
+static/
+prototypes/*.xml
+Gemfile.lock

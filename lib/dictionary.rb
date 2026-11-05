@@ -70,7 +70,7 @@ class Dictionary
   # The XML files in a directory, in dictionary order.
   def self.files(dir)
     files = Dir[File.join(dir, '*.xml')].sort_by { |f| section_sort_key(File.basename(f, '.xml')) }
-    raise "No XML files found in #{dir}" if files.empty?
+    raise "No dictionary XML files in #{dir}. Download them with: ruby bin/fetch-data" if files.empty?
 
     files
   end

@@ -1,0 +1,76 @@
+#!/usr/bin/env ruby
+# Downloads the dictionary text into data/: the XML files of the electronic
+# Dictionary of the Irish Language, from the xml/ folder of
+# https://github.com/e-dil/dil. This repository doesn't include them.
+#
+#   ruby bin/fetch-data
+#
+# The files come from one fixed commit and are checked against SHA-256
+# checksums, so every copy of the site is built from exactly the same text.
+# Files already present and correct are not downloaded again.
+# bin/server and bin/build-static run this automatically when needed.
+require 'digest'
+require 'fileutils'
+require 'net/http'
+require 'uri'
+
+REPOSITORY = 'e-dil/dil'
+COMMIT = 'c3fc5b4fa9c2f65e253a6b023c6b2f4aa9ddad8a'
+DIR = ENV.fetch('EDIL_DATA', File.expand_path('../data', __dir__))
+
+FILES = {
+  'A.xml' => '200636efe4c03d515df6157b35f16215f7f738c2e47e078c791bd910f7d6ef33',
+  'B.xml' => '00656af2f0b1e81a2e903f801cb334993dbb9bdf34890f891513265ebe92aa0a',
+  'C.xml' => '975e78d93a81569891ddc4ac515e00ea47e7cd20c3e543acac5be6ab859c0f84',
+  'D1.xml' => '8335904475552d7306d545c7e3d466040637df42ae227f1bf6f3b47af06ce79f',
+  'D2.xml' => 'c1cbad1ad5f69b7a7c4a87afb8ad02bb1c4543ce16b36f5260eaca7d7020f4a2',
+  'E.xml' => '9e081d389de18f8a3c6abaa64df34e47f53d8cac4e7f8c3e924086efd2484614',
+  'F.xml' => '6162d05b112a437878dd4cebe06f911d71607159927ad763d92949557ffffda9',
+  'G.xml' => 'bb163eb92f2730674fee583a3ddd7cc4fbf9d989a9e05e6b73c50c044d3fd563',
+  'H.xml' => '921fab34f4f845294586466b34b435b234267f0e48e593eb8fd6dfb578e1f26f',
+  'I.xml' => 'c74d36e987298be292271a1628389fa4c80ebc30b2cc2a0068b6857519ac547f',
+  'L.xml' => 'f7eb1fefdee2bbec037e86ad18b4442df8dc19d3598d24df15bd111248880230',
+  'M.xml' => '4cf63a931b405112a870aba1df25b1323a03330963ac27e8926629049599b83c',
+  'N.xml' => 'b946d734b94094b321537743a29d86087c5921221641b7946389cec01edbfcdb',
+  'O.xml' => 'dd49fb924fe1efb443a53f1af171bbfede3543b282ec98ee1d18868af54abe07',
+  'P.xml' => '82a06425965c864ce1085394b6a1a9a0d9d49576e1d20f010634ba35a4b1d5fe',
+  'R.xml' => '25ab999609b3bdc2335844a570ac9d60f240c0d2f6603e15bc7ca35ebc67dd9d',
+  'S.xml' => '0a1762dfbc4b787f683753fcd8f8d870bb3ad98bbe21791ea516b20dd9b4413f',
+  'T.xml' => '8ba2099692ec265c484aa57b971410251c98d8e304d9bda788383619fd1d2558',
+  'U.xml' => '30539f3b114d0ae73bca1ecbb947953271a0f2f428d83550053609da1ccca43c'
+}.freeze
+
+def sha256(path) = File.exist?(path) ? Digest::SHA256.file(path).hexdigest : nil
+
+def download(url, limit = 5)
+  raise "Too many redirects for #{url}" if limit.zero?
+
+  response = Net::HTTP.get_response(URI(url))
+  case response
+  when Net::HTTPSuccess then response.body
+  when Net::HTTPRedirection then download(response['location'], limit - 1)
+  else raise "#{url}: HTTP #{response.code}"
+  end
+end
+
+FileUtils.mkdir_p(DIR)
+missing = FILES.reject { |name, sum| sha256(File.join(DIR, name)) == sum }
+if missing.empty?
+  puts "Dictionary data is up to date in #{DIR}."
+  exit
+end
+
+puts "Downloading #{missing.size} dictionary file(s) from github.com/#{REPOSITORY} (about 80 MB in all)..."
+missing.each do |name, sum|
+  url = "https://raw.githubusercontent.com/#{REPOSITORY}/#{COMMIT}/xml/#{name}"
+  print "  #{name} "
+  body = download(url)
+  got = Digest::SHA256.hexdigest(body)
+  abort "\n#{name} doesn't match its expected checksum (got #{got}). Nothing was saved; try again later." unless got == sum
+
+  path = File.join(DIR, name)
+  File.binwrite("#{path}.part", body)
+  File.rename("#{path}.part", path)
+  puts "#{(body.bytesize / 1_048_576.0).round(1)} MB"
+end
+puts "Done: #{FILES.size} files in #{DIR}."
